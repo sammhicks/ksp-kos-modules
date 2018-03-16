@@ -3,21 +3,18 @@
 parameter import, declareExport.
 
 local decouplerEngines is Lexicon().
-local stageDelays is Queue().
-local stageDelayTargetStages is Queue().
 
-local theEngines is List().
+local stageDelay is 3.
 
-list engines in theEngines.
-
-for currentEngine in theEngines {
-    from { local currentPart is currentEngine. } until not currentPart:hasParent step { set currentPart TO currentPart:parent. } do {
-        if (currentEngine:stage <> currentPart:stage) and (currentPart:modules:contains("ModuleDecouple") or currentPart:modules:contains("ModuleAnchoredDecoupler")) {
-            if not decouplerEngines:hasKey(currentPart) {
-                set decouplerEngines[currentPart] to lexicon().
+for engine in ship:parts {
+    if engine:isType("Engine") {
+        from { local decoupler is engine. } until not decoupler:hasParent step { set decoupler to decoupler:parent. } do {
+            if (engine:stage <> decoupler:stage) and (decoupler:modules:contains("ModuleDecouple") or decoupler:modules:contains("ModuleAnchoredDecoupler")) {
+                if not decouplerEngines:hasKey(decoupler) {
+                    set decouplerEngines[decoupler] to UniqueSet().
+                }
+                decouplerEngines[decoupler]:add(engine).
             }
-            
-            decouplerEngines[currentPart]:add(currentEngine, 0).
         }
     }
 }
@@ -25,12 +22,20 @@ for currentEngine in theEngines {
 local function tick {
     for decoupler in decouplerEngines:keys
     {
-        for engine in decouplerEngines[decoupler]:keys
-        {
-            if engine:flameOut
+        if decoupler:ship = ship {
+            for engine in decouplerEngines[decoupler]:copy()
             {
-                decouplerEngines[decoupler]:remove(engine).
+                if engine:ship = ship {
+                    if engine:flameOut
+                    {
+                        decouplerEngines[decoupler]:remove(engine).
+                    }
+                } else {
+                    decouplerEngines[decoupler]:remove(engine).
+                }
             }
+        } else {
+            decouplerEngines:remove(decoupler).
         }
     }
     
@@ -42,28 +47,21 @@ local function tick {
             {
                 decouplerEngines:remove(decoupler).
                 
-                if decoupler:stage < stage:number
+                if stage:number > decoupler:stage
                 {
                     if decoupler:hasParent and decoupler:parent:modules:contains("ModuleEngines") and (decoupler:parent:stage = decoupler:stage - 1)
                     {
-                        stageDelays:push(time:seconds + 3).
-                        stageDelayTargetStages:push(decoupler:parent:stage).
+                        local stageTime is time:seconds + stageDelay.
+                        local targetStage is decoupler:parent:stage.
+                        when time:seconds > stageTime then {
+                            if stage:number > targetStage {
+                                stage.
+                            }
+                        }
                     }
                     stage.
                     break.
                 }
-            }
-        }
-    }
-    
-    if stage:ready and not stageDelays:empty
-    {
-        if time:seconds > stageDelays:peek()
-        {
-            stageDelays:pop().
-            if stage:number > stageDelayTargetStages:pop()
-            {
-                stage.
             }
         }
     }
