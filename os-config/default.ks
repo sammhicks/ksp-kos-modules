@@ -2,7 +2,7 @@
 
 parameter import, declareExport.
 
-import("autostage")(true).
+local autoStage is import("autostage").
 
 import("autochute").
 
