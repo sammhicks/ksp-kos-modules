@@ -6,12 +6,18 @@ local toggleBackground is import("toggle-background").
 
 local saveState is import ("save-state").
 
+local defaultText is "Enabled".
+
 declareExport({
     parameter tick.
     parameter gui.
-    parameter text is "Enabled".
+    parameter text is "".
     parameter startEnabled is false.
     parameter notifyEnableChanged is {parameter newEnabled.}.
+
+    if text = "" {
+        set text to defaultText.
+    }
 
     local name is gui:widgets[0]:text.
 

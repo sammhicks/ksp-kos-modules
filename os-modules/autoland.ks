@@ -70,6 +70,6 @@ local function onEnabledChanged {
 
 local gui is import("gui")("Auto-Land").
 
-local update is import("toggle-background-gui")(tick@, gui, "Enabled", false, onEnabledChanged@).
+local update is import("toggle-background-gui")(tick@, gui, "", false, onEnabledChanged@).
 
 declareExport(update).

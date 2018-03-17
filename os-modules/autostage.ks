@@ -71,6 +71,6 @@ local function tick {
 
 local gui is import("gui")("Auto-Stage").
 
-local update is import("toggle-background-gui")(tick@, gui, "Enabled", true).
+local update is import("toggle-background-gui")(tick@, gui, "", true).
 
 declareExport(update).
