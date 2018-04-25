@@ -2,9 +2,11 @@
 
 parameter import, declareExport.
 
-local autoStage is import("autostage").
+import("autostage").
 
 import("autochute").
+
+import("autodeploy").
 
 import("autoland").
 

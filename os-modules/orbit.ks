@@ -2,22 +2,19 @@
 
 parameter import, declareExport.
 
-local function apocenter
-{
+local function apocenter {
     parameter theOrbit.
     
     return (1 + theOrbit:eccentricity) * theOrbit:semiMajorAxis.
 }
 
-local function pericenter
-{
+local function pericenter {
     parameter theOrbit.
     
     return (1 - theOrbit:eccentricity) * theOrbit:semiMajorAxis.
 }
 
-local function orbitalSpeed
-{
+local function orbitalSpeed {
     parameter orbitalBody.
     // The extremity of the orbit (apoapsis or periapsis) which you want to know the speed at
     parameter thisExtremity.
@@ -27,45 +24,51 @@ local function orbitalSpeed
     return sqrt(2 * orbitalBody:mu * (1/thisExtremity - 1/(thisExtremity+otherExtremity))).
 }
 
-local function setApocenter
-{
+local function addNode {
+    parameter nodeTime.
+    parameter nodeSpeed.
+
+    if career():canMakeNodes {
+        add node(nodeTime, 0, 0, nodeSpeed).
+    } else {
+        hudText("Cannot add Node!", 3, 2, 32, red, false).
+    }
+}
+
+local function setApocenter {
     parameter newApocenter.
     
     local targetSpeed is orbitalSpeed(body, pericenter(obt), newApocenter).
     local pericenterSpeed is orbitalSpeed(body, pericenter(obt), apocenter(obt)).
     
-    if career():canAddNodes {
-        add node(time:seconds + eta:periapsis, 0, 0, targetSpeed - pericenterSpeed).
-    }
+    addNode(time:seconds + eta:periapsis, targetSpeed - pericenterSpeed).
 }
 
-local function setPericenter
-{
+local function setPericenter {
     parameter newPericenter.
     
     local targetSpeed is orbitalSpeed(body, apocenter(obt), newPericenter).
     local apocenterSpeed is orbitalSpeed(body, apocenter(obt), pericenter(obt)).
     
-    if career():canAddNodes {
-        add node(time:seconds + eta:apoapsis, 0, 0, targetSpeed - apocenterSpeed).
-    }
+    addNode(time:seconds + eta:apoapsis, targetSpeed - apocenterSpeed).
 }
 
-local function circularizeAtApo
-{
+local function circularizeAtApo {
     setPericenter(apocenter(obt)).
 }
 
-local function circularizeAtPeri
-{
+local function circularizeAtPeri {
     setApocenter(pericenter(obt)).
 }
 
-local function setPeriod
-{
+local function setPeriod {
     parameter ratio.
     
-    setApocenter((ratio^(2/3)) * (2 * obt:semiMajorAxis) - pericenter(obt)).
+    if eta:periapsis > eta:apoapsis {
+        setPericenter((ratio^(2/3)) * (2 * obt:semiMajorAxis) - apocenter(obt)).
+    } else {
+        setApocenter((ratio^(2/3)) * (2 * obt:semiMajorAxis) - pericenter(obt)).
+    }
 }
 
 local gui is import("gui")("Orbit").

@@ -4,7 +4,7 @@ parameter import, declareExport.
 
 local gui is import("gui")("Execute Node").
 
-local directionTolerance is 2.
+local directionTolerance is 5.
 
 local completionTolerance is 0.1.
 
@@ -24,14 +24,12 @@ local function tick {
     local maximumAcceleration is ship:availableThrust/ship:mass.
 
     if maximumAcceleration = 0 {
-        HUDTEXT("All engines are off!", 3, 2, 30, red, false).
-
-        return false.
+        return true.
     }
 
     local burnDuration to node:deltav:mag/maximumAcceleration.
     
-    lock steering to node:deltav.
+    lock steering to lookDirUp(node:deltav, ship:facing:topVector).
 
     if node:deltav:mag < completionTolerance {
         unlock steering.
@@ -68,12 +66,22 @@ local function tick {
     return true.
 }
 
+local update is {}.
+
 local function notifyEnableChanged {
     parameter enabled.
 
     set alreadyWarped to false.
+
+    if enabled and ship:availableThrust = 0 {
+        HUDTEXT("All engines are off!", 3, 2, 30, red, false).
+        update(false).
+    } else {
+        unlock steering.
+        set ship:control:mainThrottle to 0.
+    }
 }
 
-local update is import("toggle-background-gui")(tick@, gui, "", false, notifyEnableChanged@).
+set update to import("toggle-background-gui")(tick@, gui, "", false, notifyEnableChanged@).
 
 declareExport(update).

@@ -2,6 +2,6 @@
 
 parameter import, declareExport.
 
-import("autostage")(true).
+import("autostage").
 
 import("orbit").
