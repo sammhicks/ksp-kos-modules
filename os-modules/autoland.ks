@@ -10,9 +10,13 @@ local safeVelocityMaxThrustHeight is 10 + vesselRadius.
 
 local finalDescentHeight is 50 + vesselRadius.
 
-local safeVelocity is 4.
+local minSpeedHeight is vesselRadius.
 
-local freefallVelocity is 2.
+local maxSpeedHeight is finalDescentHeight.
+
+local minSpeed is -0.2.
+
+local maxSpeed is -5.
 
 local rcsCorrectionVelocity is 10.
 
@@ -32,6 +36,19 @@ local function suicideBurnAltitude {
     return radarAltitude() - suicideBurnDistance().
 }
 
+local function clamp {
+    parameter t, a, b.
+    if t < a {
+        return a.
+    }
+
+    if t > b {
+        return b.
+    }
+
+    return t.
+}
+
 local function tick {
     if ship:status = "LANDED" OR ship:status = "SPLASHED" {
         return false.
@@ -49,7 +66,9 @@ local function tick {
                 set ship:control:mainthrottle to (suicideBurnAltitude() - safeVelocityStartHeight) / (safeVelocityMaxThrustHeight - safeVelocityStartHeight).
             } else {
                 set gear to true.
-                set ship:control:mainthrottle to (freefallVelocity + verticalspeed) / (freefallVelocity - safeVelocity).
+                local zeroThrottle is ship:sensors:grav:mag / (ship:availablethrust * (ship:facing:vector * ship:up:vector) / ship:mass).
+                local targetVerticalSpeed is (maxSpeed - minSpeed) * clamp((radarAltitude() - minSpeedHeight) / (maxSpeedHeight - minSpeedHeight), 0, 1) + minspeed.
+                set ship:control:mainthrottle to zeroThrottle - (1 - zeroThrottle) * (verticalSpeed - targetVerticalSpeed) / 2.
             }
         }
         return true.
