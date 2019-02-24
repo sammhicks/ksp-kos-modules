@@ -1,6 +1,6 @@
 @lazyGlobal off.
 
-parameter import, declareExport.
+parameter import.
 
 deletePath("1:/os-modules").
 clearGuis().

@@ -15,6 +15,7 @@ local function declareExport {
 }
 
 local function importModule {
+    parameter isConfig.
     parameter srcDirectory, destDirectory.
     parameter module.
     
@@ -28,7 +29,14 @@ local function importModule {
         copyPath(sourcePath, modulePath).
     }
 
-    runOncePath(modulePath, importModule@:bind(moduleDirectory, moduleDirectory), declareExport@:bind(module)).
+    local importer is importModule@:bind(false, moduleDirectory, moduleDirectory).
+    local exporter is declareExport@:bind(module).
+
+    if isConfig {
+        runOncePath(modulePath, importer).
+    } else {
+        runOncePath(modulePath, importer, exporter).
+    }
 
     if exports:haskey(module) {
         return exports[module].
@@ -36,9 +44,9 @@ local function importModule {
 }
 
 if core:tag = "" {
-    importModule(configDirectory, "", "default").
+    importModule(true, configDirectory, "", "default").
 } else {
-    importModule(configDirectory, "", core:tag).
+    importModule(true, configDirectory, "", core:tag).
 }
 
 wait until false.

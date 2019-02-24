@@ -1,6 +1,6 @@
 @lazyGlobal off.
 
-parameter import, declareExport.
+parameter import.
 
 import("autostage").
 
