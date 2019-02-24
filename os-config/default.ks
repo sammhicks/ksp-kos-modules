@@ -8,6 +8,8 @@ import("autochute").
 
 import("autodeploy").
 
+import("autohover").
+
 import("autoland").
 
 import("orbit").

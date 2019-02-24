@@ -2,12 +2,20 @@
 
 parameter import, declareExport.
 
-hudText("Enabled!", 3, 2, 32, green, false).
+deletePath("1:/os-modules").
+clearGuis().
+clearvecdraws().
 
-import("autostage")(true).
+// import("autobalance").
 
-import("autochute").
-
+import("autohover").
 import("autoland").
 
-import("orbit").
+local gui is import("gui")("Reset").
+
+local button is gui:addButton("Reset").
+
+set button:onClick to {
+    deletePath("1:/test").
+    reboot.
+}.

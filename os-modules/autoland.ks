@@ -75,10 +75,14 @@ local function tick {
     }
 }
 
+local mutex is import("mutex")("shipcontrol").
+
 local function onEnabledChanged {
     parameter enabled.
 
-    if not enabled  {
+    if enabled {
+        mutex["claim"]().
+    } else {
         unlock throttle.
         set ship:control:mainthrottle to 0.
         unlock steering.
@@ -90,5 +94,7 @@ local function onEnabledChanged {
 local gui is import("gui")("Auto-Land").
 
 local update is import("toggle-background-gui")(tick@, gui, "", false, onEnabledChanged@).
+
+mutex["register"]({ update(false). }).
 
 declareExport(update).
