@@ -44,6 +44,7 @@ local function onEnabledChanged {
         set ship:control:mainthrottle to 0.
         set ship:control:top to 0.
         set ship:control:starboard to 0.
+        sas on.
     }
 }
 
