@@ -2,21 +2,23 @@
 
 parameter import, declareExport.
 
-local vesselRadius is import("vessel-radius").
+local getVesselRadius is import("vessel-radius").
 
-local safeVelocityStartHeight is 200 + vesselRadius.
+local lock safeVelocityStartHeight to 200 + getVesselRadius().
 
-local safeVelocityMaxThrustHeight is 10 + vesselRadius.
+local lock safeVelocityMaxThrustHeight to 10 + getVesselRadius().
 
-local finalDescentHeight is 50 + vesselRadius.
+local lock finalDescentHeight to 50 + getVesselRadius().
 
-local minSpeedHeight is vesselRadius.
+local lock minSpeedHeight to getVesselRadius().
 
-local maxSpeedHeight is finalDescentHeight.
+local lock maxSpeedHeight to finalDescentHeight.
 
-local minSpeed is -0.2.
+local minLandSpeed is 0.1.
 
-local maxSpeed is -5.
+local maxLandSpeed is 5.
+
+local initialLandSpeed is 0.5.
 
 local rcsCorrectionVelocity is 10.
 
@@ -24,12 +26,26 @@ local function radarAltitude {
     return altitude - max(0, ship:geoPosition:terrainHeight).
 }
 
+local function totalThrust {
+    local allEngines is list().
+
+    local thrust is V(0, 0, 0).
+
+    list engines in allEngines.
+
+    for engine in allEngines {
+        set thrust to thrust + engine:availableThrustAt(body:atm:seaLevelPressure) * engine:facing:vector.
+    }
+
+    return thrust.
+}
+
 local function upAcc {
-    return (ship:availablethrust * (ship:facing:forevector * ship:up:forevector) / ship:mass) - ship:sensors:grav:mag.
+    return ((totalThrust() * ship:up:forevector) / ship:mass) - ship:sensors:grav:mag.
 }
 
 local function suicideBurnDistance {
-    return (verticalspeed * verticalspeed) / (2 * upAcc()).
+    return (verticalSpeed * verticalSpeed) / (2 * upAcc()).
 }
 
 local function suicideBurnAltitude {
@@ -37,7 +53,10 @@ local function suicideBurnAltitude {
 }
 
 local function clamp {
-    parameter t, a, b.
+    parameter t.
+    parameter a is 0.
+    parameter b is 1.
+
     if t < a {
         return a.
     }
@@ -55,7 +74,7 @@ local function tick {
     } else {
         sas off.
         lock steering to lookDirUp(rcsCorrectionVelocity * ship:up:forevector - ship:velocity:surface, ship:facing:topVector).
-        if (verticalspeed > 0) or (suicideBurnAltitude() > safeVelocityStartHeight) {
+        if (verticalSpeed > 0) or (suicideBurnAltitude() > safeVelocityStartHeight) {
             rcs off.
             set ship:control:mainthrottle to 0.
         } else {
@@ -63,12 +82,13 @@ local function tick {
             set ship:control:top to - (ship:velocity:surface * ship:facing:topVector).
             set ship:control:starboard to - (ship:velocity:surface * ship:facing:starVector).
             if radarAltitude() > finalDescentHeight {
-                set ship:control:mainthrottle to (suicideBurnAltitude() - safeVelocityStartHeight) / (safeVelocityMaxThrustHeight - safeVelocityStartHeight).
+                local throttleScale is clamp(-verticalSpeed / maxLandSpeed).
+                set ship:control:mainthrottle to throttleScale * (suicideBurnAltitude() - safeVelocityStartHeight) / (safeVelocityMaxThrustHeight - safeVelocityStartHeight).
             } else {
                 set gear to true.
-                local zeroThrottle is ship:sensors:grav:mag / (ship:availablethrust * (ship:facing:vector * ship:up:vector) / ship:mass).
-                local targetVerticalSpeed is (maxSpeed - minSpeed) * clamp((radarAltitude() - minSpeedHeight) / (maxSpeedHeight - minSpeedHeight), 0, 1) + minspeed.
-                set ship:control:mainthrottle to zeroThrottle - (1 - zeroThrottle) * (verticalSpeed - targetVerticalSpeed) / 2.
+                local zeroThrottle is ship:sensors:grav:mag / ((totalThrust() * ship:up:vector) / ship:mass).
+                local targetDownSpeed is (maxLandSpeed - minLandSpeed) * clamp((radarAltitude() - minSpeedHeight) / (maxSpeedHeight - minSpeedHeight)) + minLandSpeed.
+                set ship:control:mainthrottle to zeroThrottle - (1 - zeroThrottle) * (verticalSpeed + targetDownSpeed) / 2.
             }
         }
         return true.
@@ -97,5 +117,9 @@ local gui is import("gui")("Auto-Land").
 local update is import("toggle-background-gui")(tick@, gui, "", false, onEnabledChanged@).
 
 mutex["register"]({ update(false). }).
+
+local createSlider is import("create-slider").
+
+createSlider(gui, "Land Speed", initialLandSpeed, minLandSpeed, maxLandSpeed, {parameter value. set minLandSpeed to value.}).
 
 declareExport(update).

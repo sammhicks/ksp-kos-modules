@@ -7,13 +7,24 @@ local window is GUI(480, 0).
 declareExport({
     parameter name.
 
-    local box is window:addVBox().
+    local sectionBox is window:addVBox().
 
-    local label is box:addLabel(name).
+    local titleLayout is sectionBox:addHLayout().
 
-    set label:style:align to "CENTER".
+    local toggle is titleLayout:addCheckBox("", true).
+
+    local title is titleLayout:addLabel(name).
+    set title:style:align to "CENTER".
+
+    local mainLayout is sectionBox:addVLayout().
+
+    set toggle:onToggle to {
+        parameter on.
+
+        set mainLayout:visible to on.
+    }.
 
     window:show().
 
-    return box.
+    return mainLayout.
 }).

@@ -19,9 +19,9 @@ declareExport({
         set text to defaultText.
     }
 
-    local name is gui:widgets[0]:text.
+    local name is gui:parent:widgets[0]:widgets[1]:text.
 
-    local controlButton is gui:addCheckbox(text, false).
+    local controlButton is gui:parent:widgets[0]:addCheckbox(text, false).
 
     local function onEnabledChanged {
         parameter enabled.
