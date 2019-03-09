@@ -112,9 +112,10 @@ local function onEnabledChanged {
     }
 }
 
-local gui is import("gui")("Auto-Land").
+local guiAndUpdate is import("toggle-background-gui")(tick@, "Auto-Land", true, "", false, onEnabledChanged@).
 
-local update is import("toggle-background-gui")(tick@, gui, "", false, onEnabledChanged@).
+local gui is guiAndUpdate[0].
+local update is guiAndUpdate[1].
 
 mutex["register"]({ update(false). }).
 

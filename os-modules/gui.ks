@@ -6,15 +6,19 @@ local window is GUI(480, 0).
 
 declareExport({
     parameter name.
+    parameter hasShowHide.
+    parameter onHeader is { parameter layout. }.
 
     local sectionBox is window:addVBox().
 
-    local titleLayout is sectionBox:addHLayout().
+    local headerLayout is sectionBox:addHLayout().
 
-    local toggle is titleLayout:addCheckBox("", true).
+    local toggle is headerLayout:addCheckBox("Hide", true).
 
-    local title is titleLayout:addLabel(name).
+    local title is headerLayout:addLabel(name).
     set title:style:align to "CENTER".
+
+    onHeader(headerLayout).
 
     local mainLayout is sectionBox:addVLayout().
 
@@ -22,9 +26,19 @@ declareExport({
         parameter on.
 
         set mainLayout:visible to on.
+
+        if on {
+            set toggle:text to "Hide".
+        } else {
+            set toggle:text to "Show".
+        }
     }.
 
     window:show().
+
+    if not hasShowHide {
+        set toggle:visible to false.
+    }
 
     return mainLayout.
 }).

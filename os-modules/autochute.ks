@@ -10,8 +10,4 @@ local function tick {
     return (not chutes).
 }
 
-local gui is import("gui")("Auto-Chute").
-
-local update is import("toggle-background-gui")(tick@, gui).
-
-declareExport(update).
+import("toggle-background-gui")(tick@, "Auto-Chute").

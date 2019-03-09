@@ -2,8 +2,6 @@
 
 parameter import, declareExport.
 
-local gui is import("gui")("Execute Node").
-
 local directionTolerance is 5.
 
 local completionTolerance is 0.1.
@@ -82,6 +80,4 @@ local function notifyEnableChanged {
     }
 }
 
-set update to import("toggle-background-gui")(tick@, gui, "", false, notifyEnableChanged@).
-
-declareExport(update).
+import("toggle-background-gui")(tick@, "Execute Node", false, "", false, notifyEnableChanged@).

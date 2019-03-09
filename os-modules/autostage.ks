@@ -69,8 +69,4 @@ local function tick {
     return stage:number > 0.
 }.
 
-local gui is import("gui")("Auto-Stage").
-
-local update is import("toggle-background-gui")(tick@, gui, "", true).
-
-declareExport(update).
+import("toggle-background-gui")(tick@, "Auto-Stage", false, "", true).

@@ -4,13 +4,14 @@ parameter import, declareExport.
 
 local toggleBackground is import("toggle-background").
 
-local saveState is import ("save-state").
+local saveState is import("save-state").
 
 local defaultText is "Enabled".
 
 declareExport({
     parameter tick.
-    parameter gui.
+    parameter name.
+    parameter hasShowHide is false.
     parameter text is "".
     parameter startEnabled is false.
     parameter notifyEnableChanged is {parameter newEnabled.}.
@@ -19,9 +20,13 @@ declareExport({
         set text to defaultText.
     }
 
-    local name is gui:parent:widgets[0]:widgets[1]:text.
+    local controlButton is false.
 
-    local controlButton is gui:parent:widgets[0]:addCheckbox(text, false).
+    local gui is import("gui")(name, hasShowHide, {
+        parameter header.
+
+        set controlButton to header:addCheckbox(text, false).
+    }).
 
     local function onEnabledChanged {
         parameter enabled.
@@ -37,5 +42,5 @@ declareExport({
 
     set controlButton:onToggle to update.
 
-    return update.
+    return List(gui, update).
 }).

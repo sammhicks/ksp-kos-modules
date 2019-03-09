@@ -44,8 +44,4 @@ local function notifyEnableChanged {
     }
 }
 
-local gui is import("gui")("Auto-Deploy").
-
-local update is import("toggle-background-gui")(tick@, gui, "", true, notifyEnableChanged@).
-
-declareExport(update).
+import("toggle-background-gui")(tick@, "Auto-Deploy", false, "", true, notifyEnableChanged@).

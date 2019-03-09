@@ -139,9 +139,10 @@ local function onEnabledChanged {
     }
 }
 
-local gui is import("gui")("Auto-Hover").
+local guiAndUpdate is import("toggle-background-gui")(tick@, "Auto-Hover", true, "", false, onEnabledChanged@).
 
-local update is import("toggle-background-gui")(tick@, gui, "", false, onEnabledChanged@).
+local gui is guiAndUpdate[0].
+local update is guiAndUpdate[1].
 
 mutex["register"]({ update(false). }).
 
@@ -150,5 +151,3 @@ local createSlider is import("create-slider").
 createSlider(gui, "Velocity Offset", velocityOffset, -5, 5, {parameter value. set velocityOffset to value.}).
 createSlider(gui, "RCS H Speed", rcsHSpeed, 0.1, 20, {parameter value. set rcsHSpeed to value.}).
 createSlider(gui, "RCS V Speed", rcsVSpeed, 0.1, 10, {parameter value. set rcsVSpeed to value.}).
-
-declareExport(update).

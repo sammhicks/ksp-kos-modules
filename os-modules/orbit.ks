@@ -71,7 +71,7 @@ local function setPeriod {
     }
 }
 
-local gui is import("gui")("Orbit").
+local gui is import("gui")("Orbit", false).
 
 local newNumField is import("num-field").
 
