@@ -6,7 +6,19 @@ local moduleDirectory is "os-modules".
 // The name of the directory where configurations are stored
 local configDirectory is "os-config".
 
-local exports is Lexicon().
+local backgroundTasks is Queue().
+
+local onReadyActions is Queue().
+
+local exports is Lexicon("background", {
+    parameter backgroundTask.
+
+    backgroundTasks:push(backgroundTask).
+}, "on-ready", {
+    parameter action.
+
+    onReadyActions:push(action).
+}).
 
 local function declareExport {
     parameter module, export.
@@ -19,6 +31,10 @@ local function importModule {
     parameter srcDirectory, destDirectory.
     parameter module.
     
+    if exports:haskey(module) {
+        return exports[module].
+    }
+
     local modulePath is Path(volume()):combine(destDirectory, module).
     
     if not(exists(modulePath)) {
@@ -49,4 +65,16 @@ if core:tag = "" {
     importModule(true, configDirectory, "", core:tag).
 }
 
-wait until false.
+for action in onReadyActions {
+    action().
+}
+
+until false {
+    if not backgroundTasks:empty {
+        local currentTask is backgroundTasks:pop().
+
+        if currentTask() {
+            backgroundTasks:push(currentTask).
+        }
+    }
+}

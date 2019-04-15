@@ -4,6 +4,10 @@ parameter import, declareExport.
 
 local window is GUI(480, 0).
 
+import("on-ready")({
+    window:show().
+}).
+
 declareExport({
     parameter name.
     parameter hasShowHide.
@@ -33,8 +37,6 @@ declareExport({
             set toggle:text to "Show".
         }
     }.
-
-    window:show().
 
     if not hasShowHide {
         set toggle:visible to false.
