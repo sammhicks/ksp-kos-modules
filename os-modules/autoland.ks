@@ -26,6 +26,8 @@ local function radarAltitude {
     return altitude - max(0, ship:geoPosition:terrainHeight).
 }
 
+local thrustDirection is import("thrust-direction").
+
 local function totalThrust {
     local allEngines is list().
 
@@ -34,14 +36,14 @@ local function totalThrust {
     list engines in allEngines.
 
     for engine in allEngines {
-        set thrust to thrust + engine:availableThrustAt(body:atm:seaLevelPressure) * engine:facing:vector.
+        set thrust to thrust + engine:availableThrustAt(body:atm:seaLevelPressure) * thrustDirection(engine).
     }
 
     return thrust.
 }
 
 local function upAcc {
-    return ((totalThrust() * ship:up:forevector) / ship:mass) - ship:sensors:grav:mag.
+    return ((totalThrust() * ship:up:foreVector) / ship:mass) - ship:sensors:grav:mag.
 }
 
 local function suicideBurnDistance {
@@ -73,8 +75,11 @@ local function tick {
         return false.
     } else {
         sas off.
-        lock steering to lookDirUp(rcsCorrectionVelocity * ship:up:forevector - ship:velocity:surface, ship:facing:topVector).
-        if (verticalSpeed > 0) or (suicideBurnAltitude() > safeVelocityStartHeight) {
+        lock steering to lookDirUp(rcsCorrectionVelocity * ship:up:foreVector - ship:velocity:surface, ship:facing:topVector).
+        if upAcc() < 0 {
+            rcs off.
+            set ship:control:mainThrottle to 1.
+        } else if (verticalSpeed > 0) or (suicideBurnAltitude() > safeVelocityStartHeight) {
             rcs off.
             set ship:control:mainthrottle to 0.
         } else {

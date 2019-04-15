@@ -62,6 +62,8 @@ local function calculateAngle {
     return arctan2(velocityOffset / brakeTime, ship:sensors:grav:mag).
 }
 
+local thrustDirection is import("thrust-direction").
+
 local function totalThrust {
     local allEngines is list().
 
@@ -70,7 +72,7 @@ local function totalThrust {
     list engines in allEngines.
 
     for engine in allEngines {
-        set thrust to thrust + engine:availableThrust * engine:facing:vector.
+        set thrust to thrust + engine:availableThrust * thrustDirection(engine).
     }
 
     return thrust.
