@@ -6,12 +6,12 @@ deletePath("1:/os-modules").
 clearGuis().
 clearvecdraws().
 
-// import("autobalance").
+import("simple-balance").
 
 import("autohover").
 import("autoland").
 
-local gui is import("gui")("Reset").
+local gui is import("gui")("Reset", false).
 
 local button is gui:addButton("Reset").
 
