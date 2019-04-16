@@ -4,19 +4,19 @@ parameter import, declareExport.
 
 local getVesselRadius is import("vessel-radius").
 
-local lock safeVelocityStartHeight to 200 + getVesselRadius().
+local safeVelocityStartHeight is 500.
 
-local lock safeVelocityMaxThrustHeight to 10 + getVesselRadius().
+local safeVelocityMaxThrustHeight is 100.
 
-local lock finalDescentHeight to 50 + getVesselRadius().
+local finalDescentHeight is 150.
 
 local lock minSpeedHeight to getVesselRadius().
 
-local lock maxSpeedHeight to finalDescentHeight.
+local maxSpeedHeight is finalDescentHeight.
 
 local minLandSpeed is 0.1.
 
-local maxLandSpeed is 5.
+local maxLandSpeed is 10.
 
 local initialLandSpeed is 0.5.
 
@@ -43,11 +43,11 @@ local function totalThrust {
 }
 
 local function upAcc {
-    return ((totalThrust() * ship:up:foreVector) / ship:mass) - ship:sensors:grav:mag.
+    return (totalThrust() * ship:up:foreVector) / ship:mass.
 }
 
 local function suicideBurnDistance {
-    return (verticalSpeed * verticalSpeed) / (2 * upAcc()).
+    return (verticalSpeed ^ 2) / (2 * (upAcc() - ship:sensors:grav:mag )).
 }
 
 local function suicideBurnAltitude {
@@ -76,24 +76,28 @@ local function tick {
     } else {
         sas off.
         lock steering to lookDirUp(rcsCorrectionVelocity * ship:up:foreVector - ship:velocity:surface, ship:facing:topVector).
-        if upAcc() < 0 {
+        if ship:facing:foreVector * ship:up:foreVector < 0 {
+            rcs on.
+            set ship:control:mainThrottle to 0.
+        } else if upAcc() < ship:sensors:grav:mag {
             rcs off.
             set ship:control:mainThrottle to 1.
         } else if (verticalSpeed > 0) or (suicideBurnAltitude() > safeVelocityStartHeight) {
             rcs off.
-            set ship:control:mainthrottle to 0.
+            set ship:control:mainThrottle to 0.
         } else {
             rcs on.
             set ship:control:top to - (ship:velocity:surface * ship:facing:topVector).
             set ship:control:starboard to - (ship:velocity:surface * ship:facing:starVector).
             if radarAltitude() > finalDescentHeight {
-                local throttleScale is clamp(-verticalSpeed / maxLandSpeed).
-                set ship:control:mainthrottle to throttleScale * (suicideBurnAltitude() - safeVelocityStartHeight) / (safeVelocityMaxThrustHeight - safeVelocityStartHeight).
+                local targetAcc is (verticalSpeed ^ 2 - maxLandSpeed ^ 2) / (2 * (radarAltitude() - finalDescentHeight)).
+
+                set ship:control:mainThrottle to (targetAcc + ship:sensors:grav:mag) / upAcc().
             } else {
                 set gear to true.
                 local zeroThrottle is ship:sensors:grav:mag / ((totalThrust() * ship:up:vector) / ship:mass).
                 local targetDownSpeed is (maxLandSpeed - minLandSpeed) * clamp((radarAltitude() - minSpeedHeight) / (maxSpeedHeight - minSpeedHeight)) + minLandSpeed.
-                set ship:control:mainthrottle to zeroThrottle - (1 - zeroThrottle) * (verticalSpeed + targetDownSpeed) / 2.
+                set ship:control:mainThrottle to zeroThrottle - (1 - zeroThrottle) * (verticalSpeed + targetDownSpeed) / 2.
             }
         }
         return true.
@@ -108,12 +112,13 @@ local function onEnabledChanged {
     if enabled {
         mutex["claim"]().
     } else {
-        unlock throttle.
-        set ship:control:mainthrottle to 0.
-        unlock steering.
+        set ship:control:mainThrottle to 0.
         set ship:control:top to 0.
         set ship:control:starboard to 0.
+        SET SHIP:CONTROL:NEUTRALIZE to TRUE.
         sas on.
+        rcs off.
+        unlock steering.
     }
 }
 
