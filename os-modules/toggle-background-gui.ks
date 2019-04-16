@@ -2,7 +2,7 @@
 
 parameter import, declareExport.
 
-local toggleBackground is import("toggle-background").
+local background is import("background").
 
 local saveState is import("save-state").
 
@@ -38,9 +38,29 @@ declareExport({
         notifyEnableChanged(enabled).
     }.
 
-    local update is toggleBackground(tick@, onEnabledChanged@, saveState[0](name, startEnabled)).
+    local isEnabled is saveState[0](name, startEnabled).
+    set controlButton:pressed to isEnabled.
 
-    set controlButton:onToggle to update.
+    background({
+        if controlButton:pressed <> isEnabled {
+            set isEnabled to controlButton:pressed.
+            saveState[1](name, isEnabled).
 
-    return List(gui, update).
+            notifyEnableChanged(isEnabled).
+        }
+
+        if isEnabled {
+            local isStillEnabled is tick().
+            if not isStillEnabled {
+                set controlButton:pressed to false.
+            }
+        }
+
+        return true.
+    }).
+
+    return List(gui, {
+        parameter newEnabled.
+        set controlButton:pressed to newEnabled.
+    }).
 }).
