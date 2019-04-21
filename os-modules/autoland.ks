@@ -4,11 +4,13 @@ parameter import, declareExport.
 
 local getVesselRadius is import("vessel-radius").
 
-local safeVelocityStartHeight is 500.
+local primaryDescentThrottleMin is 0.8.
 
-local safeVelocityMaxThrustHeight is 100.
+local primaryDescentThrottleMax is 0.95.
 
-local finalDescentHeight is 150.
+local primaryDescentTargetHeight is 150.
+
+local finalDescentHeight is 200.
 
 local lock minSpeedHeight to getVesselRadius().
 
@@ -46,14 +48,6 @@ local function upAcc {
     return (totalThrust() * ship:up:foreVector) / ship:mass.
 }
 
-local function suicideBurnDistance {
-    return (verticalSpeed ^ 2) / (2 * (upAcc() - ship:sensors:grav:mag )).
-}
-
-local function suicideBurnAltitude {
-    return radarAltitude() - suicideBurnDistance().
-}
-
 local function clamp {
     parameter t.
     parameter a is 0.
@@ -80,25 +74,33 @@ local function tick {
             rcs on.
             set ship:control:mainThrottle to 0.
         } else if upAcc() < ship:sensors:grav:mag {
-            rcs off.
+            rcs on.
             set ship:control:mainThrottle to 1.
-        } else if (verticalSpeed > 0) or (suicideBurnAltitude() > safeVelocityStartHeight) {
+        } else if (verticalSpeed > 0) {
             rcs off.
             set ship:control:mainThrottle to 0.
+        } else if radarAltitude() > finalDescentHeight {
+            local targetAcc is (verticalSpeed ^ 2) / (2 * (radarAltitude() - primaryDescentTargetHeight)).
+
+            local brakingThrottle to (targetAcc + ship:sensors:grav:mag) / upAcc().
+
+            if brakingThrottle < primaryDescentThrottleMin {
+                rcs off.
+                set ship:control:mainThrottle to 0.
+            } else {
+                rcs on.
+                set ship:control:mainThrottle to (brakingThrottle - primaryDescentThrottleMin) /  (primaryDescentThrottleMax - primaryDescentThrottleMin).
+            }
         } else {
             rcs on.
+            set gear to true.
+
             set ship:control:top to - (ship:velocity:surface * ship:facing:topVector).
             set ship:control:starboard to - (ship:velocity:surface * ship:facing:starVector).
-            if radarAltitude() > finalDescentHeight {
-                local targetAcc is (verticalSpeed ^ 2 - maxLandSpeed ^ 2) / (2 * (radarAltitude() - finalDescentHeight)).
 
-                set ship:control:mainThrottle to (targetAcc + ship:sensors:grav:mag) / upAcc().
-            } else {
-                set gear to true.
-                local zeroThrottle is ship:sensors:grav:mag / ((totalThrust() * ship:up:vector) / ship:mass).
-                local targetDownSpeed is (maxLandSpeed - minLandSpeed) * clamp((radarAltitude() - minSpeedHeight) / (maxSpeedHeight - minSpeedHeight)) + minLandSpeed.
-                set ship:control:mainThrottle to zeroThrottle - (1 - zeroThrottle) * (verticalSpeed + targetDownSpeed) / 2.
-            }
+            local zeroThrottle is ship:sensors:grav:mag / ((totalThrust() * ship:up:vector) / ship:mass).
+            local targetDownSpeed is (maxLandSpeed - minLandSpeed) * clamp((radarAltitude() - minSpeedHeight) / (maxSpeedHeight - minSpeedHeight)) + minLandSpeed.
+            set ship:control:mainThrottle to zeroThrottle - (1 - zeroThrottle) * (verticalSpeed + targetDownSpeed) / 2.
         }
         return true.
     }
