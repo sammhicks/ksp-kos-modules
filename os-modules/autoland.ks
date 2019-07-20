@@ -2,8 +2,6 @@
 
 parameter import, declareExport.
 
-local getVesselRadius is import("vessel-radius").
-
 local primaryDescentThrottleMin is 0.8.
 
 local primaryDescentThrottleMax is 0.95.
@@ -12,7 +10,7 @@ local primaryDescentTargetHeight is 150.
 
 local finalDescentHeight is 200.
 
-local lock minSpeedHeight to getVesselRadius().
+local minSpeedHeight to 0.
 
 local maxSpeedHeight is finalDescentHeight.
 
