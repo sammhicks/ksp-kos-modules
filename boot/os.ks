@@ -59,11 +59,7 @@ local function importModule {
     }
 }
 
-if core:tag = "" {
-    importModule(true, configDirectory, "", "default").
-} else {
-    importModule(true, configDirectory, "", core:tag).
-}
+importModule(true, configDirectory, "", choose "default" if core:tag = "" else core:tag).
 
 for action in onReadyActions {
     action().

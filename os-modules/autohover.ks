@@ -105,17 +105,8 @@ local function tick {
 
         lock steering to lookDirUp(targetDirection, angleAxis(ship:control:pilotRoll * rollSpeed, ship:facing:vector ) * ship:facing:upVector).
 
-        if (abs(starSpeedOffset) < rcsLimit) {
-            set ship:control:starboard to starSpeedOffset.
-        } else {
-            set ship:control:starboard to 0.
-        }
-
-        if (abs(upSpeedOffset) < rcsLimit) {
-            set ship:control:top to upSpeedOffset.
-        } else {
-            set ship:control:top to 0.
-        }
+        set ship:control:starboard to choose starSpeedOffset if (abs(starSpeedOffset) < rcsLimit) else 0.
+        set ship:control:top to choose upSpeedOffset if (abs(upSpeedOffset) < rcsLimit) else 0.
         
         return true.
     }
