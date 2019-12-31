@@ -9,7 +9,7 @@ local stageDelay is 3.
 for engine in ship:parts {
     if engine:isType("Engine") {
         from { local decoupler is engine. } until not decoupler:hasParent step { set decoupler to decoupler:parent. } do {
-            if (engine:stage <> decoupler:stage) and (decoupler:modules:contains("ModuleDecouple") or decoupler:modules:contains("ModuleAnchoredDecoupler")) {
+            if (engine:stage <> decoupler:stage) and decoupler:isType("Decoupler") {
                 if not decouplerEngines:hasKey(decoupler) {
                     set decouplerEngines[decoupler] to UniqueSet().
                 }
@@ -49,7 +49,7 @@ local function tick {
                 
                 if stage:number > decoupler:stage
                 {
-                    if decoupler:hasParent and decoupler:parent:modules:contains("ModuleEngines") and (decoupler:parent:stage = decoupler:stage - 1)
+                    if decoupler:hasParent and decoupler:parent:isType("Engine") and (decoupler:parent:stage = decoupler:stage - 1)
                     {
                         local stageTime is time:seconds + stageDelay.
                         local targetStage is decoupler:parent:stage.
