@@ -154,12 +154,3 @@ local background is import("background").
         setPeriod(newPeriod).
     }.
 }
-
-declareExport(lexicon(
-    "apocenter", apocenter@,
-    "pericenter", pericenter@,
-    "orbitalSpeed", orbitalSpeed@,
-    "setApocenter", setApocenter@,
-    "setPericenter", setPericenter@,
-    "setPeriod", setPeriod@
-)).

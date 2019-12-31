@@ -122,15 +122,12 @@ local function onEnabledChanged {
     }
 }
 
-local guiAndUpdate is import("toggle-background-gui")(tick@, "Auto-Land", true, "", false, onEnabledChanged@).
+local tbg is import("toggle-background-gui")(tick@, "Auto-Land", true, "", false, onEnabledChanged@).
 
-local gui is guiAndUpdate[0].
-local update is guiAndUpdate[1].
-
-mutex["register"]({ update(false). }).
+mutex["register"]({ tbg:update(false). }).
 
 local createSlider is import("create-slider").
 
-createSlider(gui, "Land Speed", initialLandSpeed, minLandSpeed, maxLandSpeed, {parameter value. set minLandSpeed to value.}).
+createSlider(tbg:gui, "Land Speed", initialLandSpeed, minLandSpeed, maxLandSpeed, {parameter value. set minLandSpeed to value.}).
 
-declareExport(update).
+declareExport(tbg:update).

@@ -59,8 +59,11 @@ declareExport({
         return true.
     }).
 
-    return List(gui, {
-        parameter newEnabled.
-        set controlButton:pressed to newEnabled.
-    }).
+    return Lexicon(
+        "gui", gui,
+        "update", {
+            parameter newEnabled.
+            set controlButton:pressed to newEnabled.
+        }
+    ).
 }).
